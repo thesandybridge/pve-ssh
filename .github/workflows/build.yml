@@ -1,4 +1,4 @@
-name: wpdev build
+name: pve-ssh build
 
 on:
   release:
