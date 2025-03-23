@@ -26,6 +26,10 @@ enum Commands {
 }
 
 fn main() -> Result<()> {
+    ctrlc::set_handler(move || {
+        println!("\n❌ Interrupted (Ctrl-C)");
+        std::process::exit(130);
+    })?;
     let cli = Cli::parse();
     let config_path = cli.config.unwrap_or_else(config::get_default_path);
     let app_config: AppConfig = config::load_config(config_path)?;
@@ -49,24 +53,29 @@ fn main() -> Result<()> {
         }
 
         None => {
-            let options: Vec<String> = app_config
+            let vm_labels: Vec<String> = app_config
                 .vms
                 .iter()
                 .map(|vm| format!("{} ({}@{})", vm.name, vm.user, vm.ip))
                 .collect();
 
             let theme = ColorfulTheme::default();
-            let selection = Select::with_theme(&theme)
-                .with_prompt("Select a VM")
-                .items(&options)
-                .default(0)
-                .interact()?;
 
-            let vm = &app_config.vms[selection];
-            println!("Connecting to {}@{}...", vm.user, vm.ip);
-            Command::new("ssh")
-                .arg(format!("{}@{}", vm.user, vm.ip))
-                .status()?;
+            let selected = Select::with_theme(&theme)
+                .with_prompt("Select a VM")
+                .items(&vm_labels)
+                .default(0)
+                .interact_opt()?; // <- safe on Ctrl-D / Esc
+
+            if let Some(index) = selected {
+                let vm = &app_config.vms[index];
+                println!("Connecting to {}@{}...", vm.user, vm.ip);
+                Command::new("ssh")
+                    .arg(format!("{}@{}", vm.user, vm.ip))
+                    .status()?;
+            } else {
+                println!("❌ Cancelled.");
+            }
         }
     }
 
