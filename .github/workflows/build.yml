@@ -12,18 +12,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build pve_ssh
+      - name: Build pve-ssh
         run: |
-          cargo build --release -p pve_ssh
-          strip target/release/pve_ssh
-          mv target/release/pve_ssh target/release/pve_ssh_amd64
+          cargo build --release -p pve-ssh
+          strip target/release/pve-ssh
+          mv target/release/pve-ssh target/release/pve-ssh_amd64
 
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            target/release/pve_ssh_amd64
+            target/release/pve-ssh_amd64
 
   build-win:
     runs-on: windows-latest
@@ -31,15 +31,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build pve_ssh
-        run: cargo build --release -p pve_ssh
+      - name: Build pve-ssh
+        run: cargo build --release -p pve-ssh
         shell: powershell
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            target/release/pve_ssh.exe
+            target/release/pve-ssh.exe
 
   build-mac:
     runs-on: macos-latest
@@ -47,14 +47,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build pve_ssh
+      - name: Build pve-ssh
         run: |
-          cargo build --release -p pve_ssh
-          strip target/release/pve_ssh
-          mv target/release/pve_ssh target/release/pve_ssh_darwin
+          cargo build --release -p pve-ssh
+          strip target/release/pve-ssh
+          mv target/release/pve-ssh target/release/pve-ssh_darwin
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            target/release/pve_ssh_darwin
+            target/release/pve-ssh_darwin
