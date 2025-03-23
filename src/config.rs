@@ -63,7 +63,7 @@ user = "{username}"
     Ok(())
 }
 
-pub fn load_config(path: PathBuf) -> Result<AppConfig> {
+pub fn load_config(path: &PathBuf) -> Result<AppConfig> {
     ensure_config_exists(&path)?;
 
     let contents = fs::read_to_string(&path)

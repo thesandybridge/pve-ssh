@@ -19,6 +19,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     List,
+    Edit,
     Connect {
         #[arg(help = "Name of the VM")]
         name: String,
@@ -32,7 +33,7 @@ fn main() -> Result<()> {
     })?;
     let cli = Cli::parse();
     let config_path = cli.config.unwrap_or_else(config::get_default_path);
-    let app_config: AppConfig = config::load_config(config_path)?;
+    let app_config: AppConfig = config::load_config(&config_path)?;
 
     match cli.command {
         Some(Commands::List) => {
@@ -52,6 +53,24 @@ fn main() -> Result<()> {
             }
         }
 
+        Some(Commands::Edit) => {
+            use std::process::Command;
+
+            let editor = app_config
+                .cli
+                .as_ref()
+                .and_then(|cli| cli.preferred_editor.clone())
+                .or_else(|| std::env::var("EDITOR").ok())
+                .unwrap_or_else(|| "vi".to_string());
+
+            println!("Opening config in {}...", editor);
+
+            Command::new(editor)
+                .arg(&config_path)
+                .status()
+                .expect("Failed to launch editor");
+        }
+
         None => {
             let vm_labels: Vec<String> = app_config
                 .vms
@@ -65,7 +84,7 @@ fn main() -> Result<()> {
                 .with_prompt("Select a VM")
                 .items(&vm_labels)
                 .default(0)
-                .interact_opt()?; // <- safe on Ctrl-D / Esc
+                .interact_opt()?;
 
             if let Some(index) = selected {
                 let vm = &app_config.vms[index];
